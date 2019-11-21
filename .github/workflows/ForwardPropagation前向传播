@@ -1,0 +1,53 @@
+import tensorflow as tf
+
+w1 = tf.Variable(tf.random_normal([2,3], stddev = 1, seed = 1))
+#seed参数为随机种子，使结果每次都相同
+w2 = tf.Variable(tf.random_normal([3,1], stddev = 1, seed = 1))
+
+x = tf.placeholder(tf.float32, shape=(1,2), name="input")  #输入数据
+                                                           #！！！placeholder是存放输入数据的位置
+
+a = tf.matmul(x, w1)  #矩阵乘法
+y = tf.matmul(a, w2)
+
+sess = tf.Session()  #开始计算，w1和w2还没有运行，没有生成随机矩阵
+
+init_op = tf.global_variables_initializer()  
+#虽然前面定义了w1和w2，但是并没有运行，所以用initializer初始化
+#tf.global_variables_initializer可以初始化所有变量
+sess.run(init_op)
+
+print(sess.run(y, feed_dict={x:[[0.7,0.9]]}))  #输出
+                                               #！！！必须用feed_dict指定placeholder的取值
+sess.close()
+
+"""[[ 3.95757794]]"""
+
+
+
+
+import tensorflow as tf
+
+w1 = tf.Variable(tf.random_normal([2,3], stddev = 1, seed = 1))
+#seed参数为随机种子，使结果每次都相同
+w2 = tf.Variable(tf.random_normal([3,1], stddev = 1, seed = 1))
+
+x = tf.placeholder(tf.float32, shape=(3,2), name="input")  #输入数据，placeholder是存放输入数据的位置
+                                                           #！！！（3,2）表示有3个数据，每个数据有两个属性
+
+a = tf.matmul(x, w1)  #矩阵乘法
+y = tf.matmul(a, w2)
+
+sess = tf.Session()  #开始计算，w1和w2还没有运行，没有生成随机矩阵
+
+init_op = tf.global_variables_initializer()  
+#虽然前面定义了w1和w2，但是并没有运行，所以用initializer初始化
+#tf.global_variables_initializer可以初始化所所有变量
+sess.run(init_op)
+
+print(sess.run(y, feed_dict={x:[[0.7,0.9],[0.1,0.4],[0.5,0.8]]}))  #输出，必须用feed_dict指定placeholder的取值
+sess.close()
+
+"""[[ 3.95757794]
+   [ 1.15376544]
+   [ 3.16749239]]"""
