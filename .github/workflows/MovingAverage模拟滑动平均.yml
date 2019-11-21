@@ -1,0 +1,39 @@
+import tensorflow as tf
+
+v1 = tf.Variable(0, dtype=tf.float32)  #初始值为0，类型为float32实数型
+#v1用于计算滑动平均
+step = tf.Variable(0, trainable=False)  
+#step是神经网络迭代轮数，用于动态控制衰减率
+#trainable=False意思是不被训练
+
+#定义一个滑动平均的类
+ema = tf.train.ExponentialMovingAverage(0.99, step)  #衰减率decay接近于1
+#ema是计算滑动平均的操作，计算滑动平均有两步，第一步更新衰减率，第二步更新滑动平均
+#！！！更新衰减率 = min{decay, (1+step)/(10+step)}
+#！！！更新滑动平均 = decay*上次滑动平均 + (1-decay)*更新后的v1
+maintain_averages_op = ema.apply([v1])  #apply用来调用[v1]
+#！！！使用时要先调用v1，再计算滑动平均
+#！！！也就是先maintain_averages_op，再ema
+
+with tf.Session() as sess:
+    init_op = tf.initialize_all_variables()  #初始化
+    sess.run(init_op)
+    
+    print(sess.run([v1, ema.average(v1)]))  #ema.average(v1)获取滑动平均之后变量的值，此时为初始化状态
+    #v1=0, step=0
+
+    #更新v1的值到5
+    sess.run(tf.assign(v1, 5))  #tf.assign是赋值语句，就是v1=5，此句为更新v1
+    sess.run(maintain_averages_op)  #调用v1
+    print(sess.run([v1, ema.average(v1)]))  #计算滑动平均
+    #更新衰减率decay = min{decay, (1+step)/(10+step)} = min{0.99, (1+0)/(10+0)} = 0.1
+    #更新滑动平均 = decay*上次滑动平均 + (1-decay)*更新后的v1 = 0.1*0 + 0.9*5 = 4.5
+    
+    #更新step的值到50
+    sess.run(tf.assign(step, 50))
+    #更新v1的值到10
+    sess.run(tf.assign(v1, 10))  #更新v1
+    sess.run(maintain_averages_op)  #调用v1
+    print(sess.run([v1, ema.average(v1)]))  #计算滑动平均
+    #更新衰减率decay = min{decay, (1+step)/(10+step)} = min{0.1, (1+50)/(10+50)} = 0.85
+    #更新滑动平均 = decay*上次滑动平均 + (1-decay)*更新后的v1 = 0.85*4.5 + 0.15*10 = 5.325
